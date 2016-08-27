@@ -10,22 +10,20 @@
  * 0. You just DO WHAT THE FUCK YOU WANT TO.
  */
 
-#include "mmath_inline.h"
+#ifndef __MMATH_INLINE_H
+#define __MMATH_INLINE_H
 
-#include <stdio.h>
+#ifdef __MMATH_H
+#error mmath.h cannot be included before mmath_inline.h
+#else
 
-int main()
-{
-	mat2 m = {
-		{1, 2},
-		{3, 3}
-	};
+#define __mmath_api static inline
+#include "mmath.h"
 
-	mat2 n = {
-		{3, 2},
-		{1, -1}
-	};
+#define __mmath_api static inline
+#define __MMATH_PRIVATE
+#include "mmath_bits.h"
 
-	mat2_print(mat2_mul_rev(m, n));
-	return 0;
-}
+#endif
+
+#endif

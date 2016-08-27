@@ -1,3 +1,15 @@
+/*
+ * DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ * Version 2, December 2004
+ * Copyright (C) 2016 Mieszko Mazurek <mieszko392@yahoo.com>
+ * Everyone is permitted to copy and distribute verbatim or modified
+ * copies of this license document, and changing it is allowed as long
+ * as the name is changed.
+ * DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * 0. You just DO WHAT THE FUCK YOU WANT TO.
+ */
+
 #ifndef __MMATH_H
 #define __MMATH_H
 
@@ -6,7 +18,6 @@
 #endif
 
 #define rad(x) ((3.14159 / 180) * (x))
-
 #define const
 
 typedef float vec2[2];
@@ -27,6 +38,7 @@ __mmath_api vec2_ref vec2_scale(vec2 v, float scale);
 __mmath_api vec2_ref vec2_norm(vec2 v);
 __mmath_api vec2_ref vec2_add(vec2 v, vec2_const w);
 __mmath_api vec2_ref vec2_sub(vec2 v, vec2_const w);
+__mmath_api vec2_ref vec2_sub_rev(vec2 v, vec2_const w);
 __mmath_api vec2_ref vec2_mul(vec2 vec, vec2_const w);
 __mmath_api vec2_ref vec2_mul_mat(vec2 vec, mat2_const m);
 
@@ -38,7 +50,9 @@ __mmath_api mat2_ref mat2_transpose(mat2 m);
 __mmath_api mat2_ref mat2_scale(mat2 m, float scale);
 __mmath_api mat2_ref mat2_add(mat2 m, mat2_const w);
 __mmath_api mat2_ref mat2_sub(mat2 m, mat2_const w);
+__mmath_api mat2_ref mat2_sub_rev(mat2 m, mat2_const w);
 __mmath_api mat2_ref mat2_mul(mat2 m, mat2_const w);
+__mmath_api mat2_ref mat2_mul_rev(mat2 m, mat2_const w);
 
 
 
@@ -60,6 +74,7 @@ __mmath_api vec3_ref vec3_scale(vec3 v, float scale);
 __mmath_api vec3_ref vec3_norm(vec3 v);
 __mmath_api vec3_ref vec3_add(vec3 v, vec3_const w);
 __mmath_api vec3_ref vec3_sub(vec3 v, vec3_const w);
+__mmath_api vec3_ref vec3_sub_rev(vec3 v, vec3_const w);
 __mmath_api vec3_ref vec3_mul(vec3 vec, vec3_const w);
 __mmath_api vec3_ref vec3_mul_mat(vec3 vec, mat3_const m);
 
@@ -73,7 +88,9 @@ __mmath_api mat3_ref mat3_transpose(mat3 m);
 __mmath_api mat3_ref mat3_scale(mat3 m, float scale);
 __mmath_api mat3_ref mat3_add(mat3 m, mat3_const w);
 __mmath_api mat3_ref mat3_sub(mat3 m, mat3_const w);
+__mmath_api mat3_ref mat3_sub_rev(mat3 m, mat3_const w);
 __mmath_api mat3_ref mat3_mul(mat3 m, mat3_const w);
+__mmath_api mat3_ref mat3_mul_rev(mat3 m, mat3_const w);
 
 
 
@@ -94,7 +111,7 @@ __mmath_api vec4_ref vec4_swap(vec4 dst, vec4 src);
 __mmath_api vec4_ref vec4_scale(vec4 v, float scale);
 __mmath_api vec4_ref vec4_norm(vec4 v);
 __mmath_api vec4_ref vec4_add(vec4 v, vec4_const w);
-__mmath_api vec4_ref vec4_sub(vec4 v, vec4_const w);
+__mmath_api vec4_ref vec4_sub_rev(vec4 v, vec4_const w);
 __mmath_api vec4_ref vec4_mul(vec4 vec, vec4_const w);
 __mmath_api vec4_ref vec4_mul_mat(vec4 vec, mat4_const m);
 
@@ -106,7 +123,9 @@ __mmath_api mat4_ref mat4_transpose(mat4 m);
 __mmath_api mat4_ref mat4_scale(mat4 m, float scale);
 __mmath_api mat4_ref mat4_add(mat4 m, mat4_const w);
 __mmath_api mat4_ref mat4_sub(mat4 m, mat4_const w);
+__mmath_api mat4_ref mat4_sub_rev(mat4 m, mat4_const w);
 __mmath_api mat4_ref mat4_mul(mat4 m, mat4_const w);
+__mmath_api mat4_ref mat4_mul_rev(mat4 m, mat4_const w);
 
 __mmath_api mat4_ref mat4_translate_xyz(mat4 m, vec3_const v);
 __mmath_api mat4_ref mat4_translate_x(mat4 m, float t);
