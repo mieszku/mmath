@@ -1,193 +1,20 @@
+#define __MMATH_PRIVATE
+#define __mmath_api extern
 #include "mmath.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <assert.h>
-
-#ifndef __unused
-#	define __unused __attribute__((unused))
+#ifdef __mmath_api
+#error mmath.h has to undef __mmath_api
+#endif
+#define __mmath_api
+#define __MMATH_PRIVATE
+#include "mmath_bits.h"
+#ifdef __mmath_api
+#error mmath_bits.h has to undef __mmath_api
+#endif
+#ifdef __MMATH_PRIVATE
+#error mmath_bits.h has to undef __MMATH_PRIVATE
 #endif
 
-#define VEC_RESULT_REQUIRED(n) \
-	assert(vec##n##_used); \
-	vec##n##_ref top __unused = vec##n##_used;
-
-#define VEC_BEGIN(n) \
-	VEC_RESULT_REQUIRED(n) \
-	vec##n##_ref out __unused = top;
-
-#define VEC_BEGIN_BUFF(n) \
-	VEC_RESULT_REQUIRED(n) \
-	vec##n __out_memory__; \
-	vec##n##_ref out = __out_memory__;
-
-#define VEC_END_NO_RETURN(n) \
-	if (out != top) \
-	memcpy(top, out, sizeof(vec##n));
-
-#define VEC_END(n) \
-	VEC_END_NO_RETURN(n) \
-	return top;
-
-
-#define MAT_RESULT_REQUIRED(n) \
-	assert(mat##n##_used); \
-	mat##n##_ref top __unused = mat##n##_used;
-
-#define MAT_BEGIN(n) \
-	MAT_RESULT_REQUIRED(n) \
-	mat##n##_ref out __unused = top;
-
-#define MAT_BEGIN_BUFF(n) \
-	MAT_RESULT_REQUIRED(n) \
-	mat##n __out_memory__; \
-	mat##n##_ref out __unused = __out_memory__;
-
-#define MAT_END_NO_RETURN(n) \
-	if (out != top) \
-	memcpy(top, out, sizeof(mat##n));
-
-#define MAT_END(n) \
-	MAT_END_NO_RETURN(n) \
-	return top;
-
-
-struct stack {
-	void **mem;
-	size_t len;
-	size_t qty;
-};
-
-static void stack_push(struct stack *st, void *p);
-static void *stack_pop(struct stack *st);
-static void swap_mem(void *restrict p, 
-	void *restrict q, size_t l);
-
-
-#define VEC_BASE(n) \
-	static struct stack vec##n##_used_stack; \
-	static vec##n##_ref vec##n##_used; \
-	vec##n##_ref vec##n##_push(vec##n p) \
-	{ \
-		stack_push(&vec##n##_used_stack, vec##n##_used); \
-		return vec##n##_replace(p); \
-	} \
-	\
-	vec##n##_ref vec##n##_replace(vec##n p) \
-	{ \
-		vec##n##_used = p; \
-		return p; \
-	} \
-	\
-	vec##n##_ref vec##n##_pop() \
-	{ \
-		vec##n##_ref out = vec##n##_used; \
-		vec##n##_used = stack_pop(&vec##n##_used_stack); \
-		return out; \
-	} \
-	\
-	vec##n##_ref vec##n##_print() \
-	{ \
-		for (int x = 0; x < n; x++) \
-			printf("| %3f |\n", vec##n##_used[x]); \
-		return vec##n##_used; \
-	} \
-	\
-	vec##n##_ref vec##n##_read(vec##n p) \
-	{ \
-		memcpy(p, vec##n##_used, sizeof(vec##n)); \
-		return vec##n##_used; \
-	}\
-	\
-	float vec##n##_magn(vec##n p) \
-	{ \
-		float m = 0; \
-		for (int x = 0; x < n; x++) \
-			m += p[x] * p[x]; \
-		return sqrtf(m); \
-	} \
-	\
-	float vec##n##_dot(vec##n p) \
-	{ \
-		float d = 0; \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			d += p[x] * top[x]; \
-		VEC_END_NO_RETURN(n) \
-		return d; \
-	} \
-	vec##n##_ref vec##n##_write(vec##n p) \
-	{ \
-		memcpy(vec##n##_used, p, sizeof(vec##n)); \
-		return vec##n##_used; \
-	} \
-	\
-	vec##n##_ref vec##n##_scale(float s) \
-	{ \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			out[x] = top[x] * s; \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_norm() \
-	{ \
-		VEC_BEGIN(n) \
-		float r = 1 / vec##n##_magn(top); \
-		vec##n##_scale(r); \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_add(vec##n p) \
-	{ \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			out[x] = top[x] + p[x]; \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_sub(vec##n p) \
-	{ \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			out[x] = top[x] - p[x]; \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_sub_rev(vec##n p) \
-	{ \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			out[x] = p[x] - top[x]; \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_mul(vec##n p) \
-	{ \
-		VEC_BEGIN(n) \
-		for (int x = 0; x < n; x++) \
-			out[x] = top[x] * p[x]; \
-		VEC_END(n) \
-	} \
-	\
-	vec##n##_ref vec##n##_mul_mat##n(mat##n m) \
-	{ \
-		VEC_BEGIN_BUFF(n) \
-		for (int y = 0; y < n; y++) { \
-			float v = 0; \
-			for (int x = 0; x < n; x++) \
-				v += m[x][y] * top[x]; \
-			out[y] = v; \
-		} \
-		VEC_END(n) \
-	} \
-
-
-VEC_BASE(2)
-VEC_BASE(3)
-VEC_BASE(4)
+/*
 
 vec3_ref vec3_cross(vec3 p)
 { 
@@ -198,143 +25,6 @@ vec3_ref vec3_cross(vec3 p)
 	VEC_END(3)
 }
 
-#define MAT_BASE(n) \
-	static struct stack mat##n##_used_stack; \
-	static mat##n##_ref mat##n##_used; \
-	\
-	mat##n##_ref mat##n##_push(mat##n p) \
-	{ \
-		stack_push(&mat##n##_used_stack, mat##n##_used); \
-		mat##n##_used = p; \
-		return p; \
-	} \
-	\
-	mat##n##_ref mat##n##_replace(mat##n p) \
-	{ \
-		mat##n##_used = p; \
-		return p; \
-	} \
-	\
-	mat##n##_ref mat##n##_pop() \
-	{ \
-		mat##n##_ref out = mat##n##_used; \
-		mat##n##_used = stack_pop(&mat##n##_used_stack); \
-		return out; \
-	} \
-	\
-	mat##n##_ref mat##n##_print() \
-	{ \
-		for (int x = 0; x < n; x++) { \
-			printf("| "); \
-			for (int y = 0; y < n; y++) \
-				printf("%3f ", mat##n##_used[y][x]); \
-			printf("|\n"); \
-		} \
-		return mat##n##_used; \
-	} \
-	\
-	mat##n##_ref mat##n##_read(mat##n p) \
-	{ \
-		memcpy(p, mat##n##_used, sizeof(mat##n)); \
-		return mat##n##_used; \
-	} \
-	\
-	mat##n##_ref mat##n##_swap(mat##n p) \
-	{ \
-		swap_mem(mat##n##_used, p, sizeof(mat##n)); \
-		return mat##n##_used; \
-	} \
-	\
-	mat##n##_ref mat##n##_write(mat##n p) \
-	{ \
-		memcpy(mat##n##_used, p, sizeof(mat##n)); \
-		return mat##n##_used; \
-	} \
-	\
-	mat##n##_ref mat##n##_identity() \
-	{ \
-		MAT_BEGIN(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[y][x] = (float)(x == y); \
-		MAT_END(n) \
-	} \
-	\
-	mat##n##_ref mat##n##_transpose() \
-	{ \
-		MAT_BEGIN_BUFF(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[x][y] = top[y][x]; \
-		MAT_END(n) \
-	} \
-	\
-	mat##n##_ref mat##n##_scale(float scale) \
-	{ \
-		MAT_BEGIN(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[y][x] = top[y][x] * scale; \
-		MAT_END(n) \
-	} \
-	\
-	mat##n##_ref mat##n##_add(mat##n p) \
-	{ \
-		MAT_BEGIN(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[y][x] = top[y][x] + p[y][x]; \
-		MAT_END(n) \
-	}\
-	\
-	mat##n##_ref mat##n##_sub(mat##n p) \
-	{ \
-		MAT_BEGIN(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[y][x] = top[y][x] - p[y][x]; \
-		MAT_END(n) \
-	}\
-	\
-	mat##n##_ref mat##n##_sub_rev(mat##n p) \
-	{ \
-		MAT_BEGIN(n) \
-		for (int y = 0; y < n; y++) \
-			for (int x = 0; x < n; x++) \
-				out[y][x] = p[y][x] - top[y][x]; \
-		MAT_END(n) \
-	}\
-	\
-	mat##n##_ref mat##n##_mul(mat##n p) \
-	{ \
-		MAT_BEGIN_BUFF(n) \
-		for (int y = 0; y < n; y++) \
-		for (int x = 0; x < n; x++) { \
-			float v = 0; \
-			for (int i = 0; i < n; i++) \
-				v += top[i][x] * p[y][i]; \
-			out[y][x] = v; \
-		} \
-		MAT_END(n) \
-	} \
-	\
-	mat##n##_ref mat##n##_mul_rev(mat##n p) \
-	{ \
-		MAT_BEGIN_BUFF(n) \
-		for (int y = 0; y < n; y++) \
-		for (int x = 0; x < n; x++) { \
-			float v = 0; \
-			for (int i = 0; i < n; i++) \
-				v += top[y][i] * p[i][x]; \
-			out[y][x] = v; \
-		} \
-		MAT_END(n) \
-	}
-
-
-MAT_BASE(2)
-MAT_BASE(4)
-MAT_BASE(3)
 
 
 mat4_ref mat4_translate_xyz(float x, float y, float z)
@@ -488,10 +178,6 @@ mat4_ref mat4_look_at(vec3 eye, vec3 pos, vec3 up)
 	return mat4_mul_rev(mat);
 }
 
-/*
- * internal 
- */
-
 static void stack_push(struct stack *st, void *p)
 {
 	if (st->mem == NULL) {
@@ -526,3 +212,4 @@ static void swap_mem(void *restrict p,
 		pc++; qc++;
 	}
 }
+*/
